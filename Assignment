@@ -1,0 +1,160 @@
+File 01
+
+<Shipment>
+    <ShipmentId>98</ShipmentId>
+    <ShipmentDescription>ABC</ShipmentDescription>
+    <ShipmentDeliveryAddress></ShipmentDeliveryAddress>
+    <ShipmentWeight>30</ShipmentWeight>
+    <ShipmentStatus>Delivered</ShipmentStatus>
+    <ShipmentCreatedDateTime></ShipmentCreatedDateTime>
+    <ShipmentModifiedDateTime></ShipmentModifiedDateTime>
+    <ShipmentOrderDetails>
+    <Order>
+        <OrderId>1</OrderId>
+        <OrderDescription>Bag</OrderDescription>
+        <OrderDeliveryAddress>Bangalore</OrderDeliveryAddress>
+        <OrderDeliveryDateTime>25-04-2022</OrderDeliveryDateTime>
+        <OrderStatus>Order Delivered</OrderStatus>
+        <OrderCount>1</OrderCount>
+        <OrderAmount>15000</OrderAmount>
+        <OrderDetails> 
+            <ItemId>1</ItemId>
+            <ItemDescription>Bags</ItemDescription>
+            <ItemType>Laptop bag</ItemType>
+            <ItemPrice>15000</ItemPrice>
+            <ItemStatus>Availaible</ItemStatus>
+            <ItemWeight>30</ItemWeight>
+        </OrderDetails>
+    </Order>
+    </ShipmentOrderDetails>
+</Shipment>
+
+File 02
+
+<Shipment>
+    <ShipmentId>99</ShipmentId>
+    <ShipmentDescription>XYZ</ShipmentDescription>
+    <ShipmentDeliveryAddress></ShipmentDeliveryAddress>
+    <ShipmentWeight>10</ShipmentWeight>
+    <ShipmentStatus>Delivered</ShipmentStatus>
+    <ShipmentCreatedDateTime></ShipmentCreatedDateTime>
+    <ShipmentModifiedDateTime></ShipmentModifiedDateTime>
+    <ShipmentOrderDetails>
+    <Order>
+        <OrderId>2</OrderId>
+        <OrderDescription>Book</OrderDescription>
+        <OrderDeliveryAddress>Bangalore</OrderDeliveryAddress>
+        <OrderDeliveryDateTime>18-04-2022</OrderDeliveryDateTime>
+        <OrderStatus>Order Delivered</OrderStatus>
+        <OrderCount>2</OrderCount>
+        <OrderAmount>150</OrderAmount>
+        <OrderDetails> 
+            <ItemId>2</ItemId>
+            <ItemDescription>Book</ItemDescription>
+            <ItemType>College Book</ItemType>
+            <ItemPrice>150</ItemPrice>
+            <ItemStatus>Availaible</ItemStatus>
+            <ItemWeight>0.5</ItemWeight>
+        </OrderDetails>
+    </Order>
+    </ShipmentOrderDetails>
+</Shipment>
+
+
+xdmp:eval('for $d in xdmp:filesystem-directory("C:\Users\Vishnupriya\Desktop\MarkLogic Assignment")//dir:entry
+return xdmp:document-load($d//dir:pathname, 
+  <options xmlns="xdmp:document-load">
+    <uri>{fn:string($d//dir:filename)}</uri>
+    <collections>
+          <collection>Ml Collection</collection>
+     </collections> 
+  </options>)',  ()
+		  )
+      
+      
+for $Shipment in /Shipment
+let $OrderDetails := $Shipment//ShipmentOrdeDetails/text()
+return $OrderDetails
+
+
+      
+for $Shipment in collection()/Shipment
+let $OrderAmount := $Shipment//OrderAmount/text()
+where  $OrderAmount > 10000
+return $Shipment//OrderDetails
+
+
+
+for $Shipment in collection()/Shipment
+let $ItemId := $Shipment//ShipmentOrderDetails/Order/OrderDetails/ItemId
+let $ItemWeight:= $Shipment//ShipmentOrderDetails/Order/OrderDetails/ItemWeight/text()
+let $OrderId := $Shipment//ShipmentOrderDetails/Order/OrderId
+let $ItemDescription := $Shipment//ShipmentOrderDetails/Order/OrderDetails/ItemDescription
+where $ItemWeight le 20
+return (<ItemId>{$ItemId}</ItemId>,
+<OrderId>{$OrderId}</OrderId>,
+<ItemDescription>{$ItemDescription}</ItemDescription>)
+
+
+
+for $Shipment in /Shipment
+let $Order := $Shipment//ShipmentOrderDetails/Order
+let $ItemPrice := $Shipment//ShipmentOrderDetails/ItemPrice/text()
+order by $ItemPrice ascending
+return $Order
+
+
+
+for $Shipment in /Shipment
+let $Orders := $Shipment//OrderDetails
+let $DeliveryDate := $Shipment/ShipmentOrderDetails/OrderDeliveryDateTime/text()
+let $diff := (fn:days-from-duration((fn:current-date() - xs:date($DeliveryDate))))
+where xs:integer($diff le 2) 
+return $Orders
+
+
+for $Shipment in /Shipment
+let $ShipmentId := $Shipment/ShipmentId
+let $OrderId := $Shipment//ShipmentOrderDetails/Order/OrderId
+let $OrderStatus := $Shipment//OrderStatus
+return (
+<ShipmentId>{$ShipmentId}</ShipmentId>,
+<OrderId>{$OrderId}</OrderId>,<Status>{$OrderStatus}</Status>)
+
+
+for $Shipment in /Shipment
+let $ShipmentId := $Shipment/ShipmentId
+let $Count := fn:count($Shipment/ShipmentOrderDetails/Order)
+return (
+<ShipmentId>{$ShipmentId}</ShipmentId>,
+<Count>{$Count}</Count>)
+
+
+
+for $Shipment in /Shipment
+let $ShipmentId := $Shipment/ShipmentId
+let $DeliveredCount := fn:count($Shipment/ShipmentOrderDetails/Order/OrderStatus[.= "OrderDelivered"])
+return ($ShipmentId, $DeliveredCount)
+
+
+
+declare function local:func1($input)
+{
+  
+  let $day := fn:day-from-dateTime(xs:dateTime($input))
+  let $month := fn:month-from-dateTime(xs:dateTime($input))
+  let $current := xs:dateTime($input)
+ 
+
+  return fn:format-dateTime($current,
+  "[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]")
+  
+};
+
+
+
+<Utc-dateTime>
+{local:func1("2022-04-25T06:31:21")}
+</Utc-dateTime>
+
+
